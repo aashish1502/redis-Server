@@ -1,17 +1,35 @@
 package Parser;
 
+import DataClasses.CacheValue;
 import commands.*;
 
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CommandMapper {
 
-    public final HashMap<String, Command> commandMap = new HashMap<>();
-    {
-        commandMap.put("ping", new PingCommand());
-        commandMap.put("echo", new EchoCommand());
-        commandMap.put("set", new SetCommand());
-        commandMap.put("get", new GetCommand());
+    private static ConcurrentHashMap<String, Command> commandMap = null;
+
+
+    static void init() {
+
+        {
+            commandMap.put("ping", new PingCommand());
+            commandMap.put("echo", new EchoCommand());
+            commandMap.put("set", new SetCommand());
+            commandMap.put("get", new GetCommand());
+            commandMap.put("INFO", new InfoCommand());
+        }
+
+    }
+
+    public static synchronized ConcurrentHashMap<String, Command> getInstance() {
+        if (commandMap == null) {
+            commandMap = new ConcurrentHashMap<>();
+            init();
+        }
+        return commandMap;
+
     }
 
 }

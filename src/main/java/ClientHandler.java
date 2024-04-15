@@ -43,6 +43,7 @@ public class ClientHandler implements Runnable {
 
     }
 
+    @Deprecated
     private void commandHandler(List<Command> commands, BufferedWriter out) {
 
         try{

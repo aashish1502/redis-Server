@@ -1,6 +1,12 @@
+import OptionsAndRoles.ConfigOptions;
+import Parser.CommandMapper;
+import commands.Command;
+import commands.InfoCommand;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -11,6 +17,22 @@ import java.util.concurrent.TimeUnit;
 //      right now the thread pool executor works as and event loop to handle the number of threads and
 //      resources but try to implement it in future by only using a fixed pool executor.
 public class Main {
+
+
+    static ConfigOptions setConfig(String[] config) {
+        ConfigOptions configObject = new ConfigOptions();
+        if(config.length == 0) return  configObject;
+
+        for(int i = 0 ; i < config.length ; i++) {
+            if(config[i].equalsIgnoreCase("--port")) {
+                configObject.setPortNumber(Integer.parseInt(config[i+1]));
+                i++;
+            }
+        }
+
+        return configObject;
+
+    }
 
 
     // This is a thread pool executor that does the following things
@@ -37,12 +59,21 @@ public class Main {
 
         // You can use print statements as follows for debugging, they'll be visible when running tests.
         System.out.println("Logs from your program will appear here!");
+//        System.out.println(Arrays.toString(args));
 
         ServerSocket serverSocket = null;
         Socket clientSocket = null;
-        int port = 6379;
+        ConfigOptions configOptions = setConfig(args);
+
+
+        ConcurrentHashMap<String, Command> cmd = CommandMapper.getInstance();
+        System.out.println(cmd);
+        InfoCommand info = (InfoCommand) cmd.get("INFO");
+        info.setServerConfig(configOptions);
+
+
         try {
-            serverSocket = new ServerSocket(port);
+            serverSocket = new ServerSocket(configOptions.getPort() );
             // Since the tester restarts the program quite often, setting SO_REUSEADDR
             // ensures that we don't run into 'Address already in use' errors
             serverSocket.setReuseAddress(true);

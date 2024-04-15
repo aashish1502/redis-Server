@@ -15,12 +15,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 // This parser is supposed to follow the RESP3 protocol to parse commands, I don't know how it will be implemented as
 // I have done very little research into it but let's see how it goes
 // edit 1: the input stream is not streaming the way i thought it was  :/
 public class CommandParserHandler {
-    CommandMapper cmdMapr = new CommandMapper();
+    ConcurrentHashMap<String, Command> cmdMapr = CommandMapper.getInstance();
     Socket client;
     public CommandParserHandler(Socket clientSocket){
         this.client = clientSocket;
@@ -67,8 +68,8 @@ public class CommandParserHandler {
         String command = clientCommand[0];
         System.out.println("Creating command for: " + command);
         try {
-            if(cmdMapr.commandMap.containsKey(command)) {
-                return cmdMapr.commandMap.get(command).processCommand(Arrays.copyOfRange(clientCommand, 1, clientCommand.length));
+            if(cmdMapr.containsKey(command)) {
+                return cmdMapr.get(command).processCommand(Arrays.copyOfRange(clientCommand, 1, clientCommand.length));
             }
             else {
                 throw new BadCommandException();
