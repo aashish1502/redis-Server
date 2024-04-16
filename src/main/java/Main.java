@@ -19,20 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class Main {
 
 
-    static ConfigOptions setConfig(String[] config) {
-        ConfigOptions configObject = new ConfigOptions();
-        if(config.length == 0) return  configObject;
 
-        for(int i = 0 ; i < config.length ; i++) {
-            if(config[i].equalsIgnoreCase("--port")) {
-                configObject.setPortNumber(Integer.parseInt(config[i+1]));
-                i++;
-            }
-        }
-
-        return configObject;
-
-    }
 
 
     // This is a thread pool executor that does the following things
@@ -63,7 +50,8 @@ public class Main {
 
         ServerSocket serverSocket = null;
         Socket clientSocket = null;
-        ConfigOptions configOptions = setConfig(args);
+        ConfigOptions configOptions = new ConfigOptions();
+        configOptions.setConfig(args);
 
 
         ConcurrentHashMap<String, Command> cmd = CommandMapper.getInstance();
