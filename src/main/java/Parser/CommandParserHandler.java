@@ -3,17 +3,12 @@ package Parser;
 
 import Exceptions.BadCommandException;
 import commands.Command;
-import commands.EchoCommand;
-import commands.PingCommand;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -53,7 +48,7 @@ public class CommandParserHandler {
 
             if( Objects.requireNonNull(clientCommand).length != 0) {
                 System.out.println(Arrays.toString(clientCommand));
-                out.write(commandProccessor(clientCommand));
+                out.write(commandProcessor(clientCommand));
                 out.flush();
             }
 
@@ -63,13 +58,13 @@ public class CommandParserHandler {
 
     }
 
-    String commandProccessor(String[] clientCommand) throws BadCommandException {
+    String commandProcessor(String[] clientCommand) throws BadCommandException {
 
         String command = clientCommand[0];
         System.out.println("Creating command for: " + command);
         try {
-            if(cmdMapr.containsKey(command)) {
-                return cmdMapr.get(command).processCommand(Arrays.copyOfRange(clientCommand, 1, clientCommand.length));
+            if(cmdMapr.containsKey(command.toLowerCase())) {
+                return cmdMapr.get(command.toLowerCase()).processCommand(Arrays.copyOfRange(clientCommand, 1, clientCommand.length));
             }
             else {
                 throw new BadCommandException();

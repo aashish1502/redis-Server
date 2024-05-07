@@ -13,7 +13,7 @@ public class ConfigOptions {
     private int portNumber = 6379;
     private boolean isMaster;
     private String role;
-    private int  masterPort;
+    private int  masterPort = -1;
     private String masterHost;
     private String masterReplID;
     private int masterReplOffset;
@@ -71,6 +71,8 @@ public class ConfigOptions {
         return this.portNumber;
     }
 
+    public int getMasterPort() {return this.masterPort;}
+
     public String getConfigString() {
         return "role:"+this.role + "\nmaster_repl_offset:" + this.masterReplOffset + "\nmaster_replid:"+this.masterReplID;
     }
@@ -89,8 +91,33 @@ public class ConfigOptions {
                 this.role = "slave";
                 this.masterHost = config[++i];
                 this.masterPort = Integer.parseInt(config[++i]);
+                this.isMaster = false;
             }
         }
+
+
+    }
+
+    public String getMasterHost() {
+        return masterHost;
+    }
+
+    public String getMasterReplID() {
+        return masterReplID;
+    }
+
+    public int getMasterReplOffset() {
+        return masterReplOffset;
+    }
+
+    public void printConfig() {
+
+        System.out.println("role: "+this.role);
+        System.out.println("master_repl_offset: "+this.masterReplOffset);
+        System.out.println("master_replid: "+this.masterReplID);
+        System.out.println("port: "+this.portNumber);
+        System.out.println("master_host: "+this.masterHost);
+        System.out.println("master_port: "+this.masterPort);
 
 
     }

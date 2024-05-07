@@ -18,7 +18,7 @@ public class CommandMapper {
             commandMap.put("echo", new EchoCommand());
             commandMap.put("set", new SetCommand());
             commandMap.put("get", new GetCommand());
-            commandMap.put("INFO", new InfoCommand());
+            commandMap.put("info", new InfoCommand());
         }
 
     }

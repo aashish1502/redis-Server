@@ -3,7 +3,10 @@ import Parser.CommandMapper;
 import commands.Command;
 import commands.InfoCommand;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,23 +51,63 @@ public class Main {
         System.out.println("Logs from your program will appear here!");
 //        System.out.println(Arrays.toString(args));
 
-        ServerSocket serverSocket = null;
-        Socket clientSocket = null;
+
         ConfigOptions configOptions = new ConfigOptions();
         configOptions.setConfig(args);
+//        configOptions.printConfig();
 
 
         ConcurrentHashMap<String, Command> cmd = CommandMapper.getInstance();
         System.out.println(cmd);
-        InfoCommand info = (InfoCommand) cmd.get("INFO");
+        InfoCommand info = (InfoCommand) cmd.get("info");
         info.setServerConfig(configOptions);
 
+        if(!configOptions.getRole().equals("slave")) {
+            runAsMaster(configOptions.getPort());
+        }
+        else {
+            runAsMaster(configOptions.getMasterPort());
+        }
+
+        if(configOptions.getRole().equals("slave")) {
+            runAsWorker(configOptions);
+        }
+
+
+
+    }
+
+    public static void  runAsWorker(ConfigOptions configOptions) {
 
         try {
-            serverSocket = new ServerSocket(configOptions.getPort() );
+            Socket socket = new Socket(configOptions.getMasterHost(), configOptions.getMasterPort());
+            BufferedReader serverReader =
+                    new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            OutputStream serverWriter = socket.getOutputStream();
+            serverWriter.write("*1\r\n$4\r\nping\r\n".getBytes());
+            serverWriter.flush();
+            runAsMaster(configOptions.getPort());
+        } catch (IOException e) {
+            System.out.println(
+                    "Exception occurred when tried to connect to the server: " +
+                            e.getMessage());
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    public static void  runAsMaster(int port) {
+
+        ServerSocket serverSocket = null;
+        Socket clientSocket = null;
+        System.out.println("Starting Redis server on port: " + port);
+        try {
+
+            serverSocket = new ServerSocket(port);
             // Since the tester restarts the program quite often, setting SO_REUSEADDR
             // ensures that we don't run into 'Address already in use' errors
             serverSocket.setReuseAddress(true);
+
 
             while (true) {
                 clientSocket = serverSocket.accept();
@@ -84,5 +127,9 @@ public class Main {
                 System.out.println("IOException: " + e.getMessage());
             }
         }
+
     }
+
+
+
 }

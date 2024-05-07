@@ -33,7 +33,7 @@ public class SetCommand implements Command {
 
     @Override
     public String processCommand(String... strings) {
-
+        System.out.println("RUNNING SET COMMAND");
         if (strings.length > 2) {
             proccessFlags(Arrays.copyOfRange(strings, 2, strings.length));
         }
