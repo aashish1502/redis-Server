@@ -6,10 +6,7 @@ import java.util.Arrays;
 
 public class InfoCommand implements Command {
 
-    ConfigOptions serverConfig = null;
-    public void setServerConfig(ConfigOptions serverConfig) {
-        this.serverConfig = serverConfig;
-    }
+
 
     @Override
     public boolean match(String command) {
@@ -20,7 +17,7 @@ public class InfoCommand implements Command {
     public String processCommand(String... strings) {
 
         StringBuffer sb = new StringBuffer();
-
+        ConfigOptions serverConfig = ConfigOptions.getInstance();
 //        if(strings.length > 0) {
 //            sb.append("#"+ strings[0]);
 //            sb.append("\r\n");

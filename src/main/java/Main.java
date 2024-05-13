@@ -47,15 +47,13 @@ public class Main {
 //        System.out.println(Arrays.toString(args));
 
 
-        ConfigOptions configOptions = new ConfigOptions();
+        ConfigOptions configOptions = ConfigOptions.getInstance();
         configOptions.setConfig(args);
-        configOptions.printConfig();
+//        configOptions.printConfig();
 
 
         ConcurrentHashMap<String, Command> cmd = CommandMapper.getInstance();
         System.out.println(cmd);
-        InfoCommand info = (InfoCommand) cmd.get("info");
-        info.setServerConfig(configOptions);
 
         if (!configOptions.getRole().equalsIgnoreCase("slave")) {
             runAsMaster(configOptions.getPort(), configOptions);
@@ -79,14 +77,8 @@ public class Main {
 
             BufferedWriter serverWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 
-            serverWriter.write(RespResponseParser.sendArrayString(new String[]{"ping"}));
-            serverWriter.flush();
-            Thread.sleep(500);
-            serverWriter.write(RespResponseParser.sendArrayString(new String[]{"REPLCONF", "listening-port" , Integer.toString(configOptions.getPort())}));
-            serverWriter.flush();
-            Thread.sleep(500);
-            serverWriter.write(RespResponseParser.sendArrayString(new String[]{"REPLCONF", "capa" , "psync2"}));
-            serverWriter.flush();
+            initHandshake(serverReader, serverWriter, configOptions);
+
             runAsMaster(configOptions.getPort(), configOptions);
 
 
@@ -94,8 +86,6 @@ public class Main {
             System.out.println(
                     "Exception occurred when tried to connect to the server: " +
                             e.getMessage());
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
@@ -131,6 +121,33 @@ public class Main {
             } catch (IOException e) {
                 System.out.println("IOException: " + e.getMessage());
             }
+        }
+
+    }
+
+
+    static void initHandshake(BufferedReader serverReader, BufferedWriter serverWriter, ConfigOptions configOptions) {
+
+        try {
+            serverWriter.write(RespResponseParser.sendArrayString(new String[]{"ping"}));
+            serverWriter.flush();
+            String resp = serverReader.readLine();
+
+            serverWriter.write(RespResponseParser.sendArrayString(new String[]{"REPLCONF", "listening-port" , Integer.toString(configOptions.getPort())}));
+            serverWriter.flush();
+            resp = serverReader.readLine();
+
+            serverWriter.write(RespResponseParser.sendArrayString(new String[]{"REPLCONF", "capa" , "psync2"}));
+            serverWriter.flush();
+            resp = serverReader.readLine();
+
+            serverWriter.write(RespResponseParser.sendArrayString(new String[]{"PSYNC", "?" , "-1"}));
+            serverWriter.flush();
+            resp = serverReader.readLine();
+
+        }
+        catch (Exception e) {
+            e.printStackTrace();
         }
 
     }

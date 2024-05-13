@@ -20,6 +20,7 @@ public class CommandMapper {
             commandMap.put("get", new GetCommand());
             commandMap.put("info", new InfoCommand());
             commandMap.put("replconf", new ReplicaConfCommand());
+            commandMap.put("psync", new PsyncCommand());
 
         }
 

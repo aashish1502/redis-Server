@@ -9,6 +9,7 @@ import java.util.UUID;
 // this can then be used to set config of the server easily without having to bloat up the main code.
 public class ConfigOptions {
 
+    private static ConfigOptions configOptions = null;
 
     private int portNumber = 6379;
     private boolean isMaster;
@@ -33,7 +34,7 @@ public class ConfigOptions {
         this.portNumber = portNumber;
     }
 
-    public ConfigOptions() {
+    private ConfigOptions() {
 
         SecureRandom secureRandom = new SecureRandom();
         byte[] bytes = new byte[20]; // 20 bytes = 40 hex characters
@@ -121,6 +122,15 @@ public class ConfigOptions {
         System.out.println("master_port: "+this.masterPort);
 
 
+    }
+
+
+    public static synchronized ConfigOptions getInstance() {
+        if(configOptions == null) {
+            configOptions = new ConfigOptions();
+        }
+
+        return  configOptions;
     }
 
 }
