@@ -19,6 +19,8 @@ public class CommandMapper {
             commandMap.put("set", new SetCommand());
             commandMap.put("get", new GetCommand());
             commandMap.put("info", new InfoCommand());
+            commandMap.put("replconf", new ReplicaConfCommand());
+
         }
 
     }

@@ -89,8 +89,9 @@ public class ConfigOptions {
 
             if(config[i].equalsIgnoreCase("--replicaof")) {
                 this.role = "slave";
-                this.masterHost = config[++i];
-                this.masterPort = Integer.parseInt(config[++i]);
+                String[] options = config[++i].split(" ");
+                this.masterHost = options[0];
+                this.masterPort = Integer.parseInt(options[1]);
                 this.isMaster = false;
             }
         }

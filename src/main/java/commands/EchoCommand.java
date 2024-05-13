@@ -1,5 +1,7 @@
 package commands;
 
+import Parser.RespResponseParser;
+
 import java.util.Arrays;
 
 public class EchoCommand implements Command {
@@ -16,6 +18,6 @@ public class EchoCommand implements Command {
 
         if(str[0].isEmpty()) return NULL_BULK_STRING;
 
-        return "$" + (str[0].length()) + "\r\n" + str[0] + "\r\n";
+        return RespResponseParser.sendBulkString(str[0]);
     }
 }

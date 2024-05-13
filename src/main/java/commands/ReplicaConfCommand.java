@@ -2,15 +2,16 @@ package commands;
 
 import Parser.RespResponseParser;
 
-public class PingCommand implements Command{
+public class ReplicaConfCommand implements Command{
+
 
     @Override
     public boolean match(String command) {
-        return command.equalsIgnoreCase("ping");
+        return false;
     }
 
     @Override
     public String processCommand(String... strings) {
-        return RespResponseParser.sendSimpleString("PONG");
+        return RespResponseParser.sendSimpleString("OK");
     }
 }

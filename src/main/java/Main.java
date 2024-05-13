@@ -1,12 +1,10 @@
 import OptionsAndRoles.ConfigOptions;
 import Parser.CommandMapper;
+import Parser.RespResponseParser;
 import commands.Command;
 import commands.InfoCommand;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,9 +20,6 @@ import java.util.concurrent.TimeUnit;
 public class Main {
 
 
-
-
-
     // This is a thread pool executor that does the following things
     // - core size : 2                    # the number of cores the pool executor is allowed to work with
     // - maximumPoolSize : 10             # number of threads that will be running at the same time.
@@ -37,12 +32,12 @@ public class Main {
     //                  Daemon threads are typically used for background supporting tasks.
 
     private final static ThreadPoolExecutor threadPool = new ThreadPoolExecutor(2, 10, 0L, TimeUnit.MILLISECONDS,
-        new LinkedBlockingQueue<>(1000),
-        r -> {
-            Thread t = new Thread(r);
-            t.setDaemon(true);
-            return t;
-        }
+            new LinkedBlockingQueue<>(1000),
+            r -> {
+                Thread t = new Thread(r);
+                t.setDaemon(true);
+                return t;
+            }
     );
 
     public static void main(String[] args) {
@@ -54,7 +49,7 @@ public class Main {
 
         ConfigOptions configOptions = new ConfigOptions();
         configOptions.setConfig(args);
-//        configOptions.printConfig();
+        configOptions.printConfig();
 
 
         ConcurrentHashMap<String, Command> cmd = CommandMapper.getInstance();
@@ -62,43 +57,53 @@ public class Main {
         InfoCommand info = (InfoCommand) cmd.get("info");
         info.setServerConfig(configOptions);
 
-        if(!configOptions.getRole().equals("slave")) {
-            runAsMaster(configOptions.getPort());
-        }
-        else {
-            runAsMaster(configOptions.getMasterPort());
+        if (!configOptions.getRole().equalsIgnoreCase("slave")) {
+            runAsMaster(configOptions.getPort(), configOptions);
         }
 
-        if(configOptions.getRole().equals("slave")) {
+        if (configOptions.getRole().equals("slave")) {
             runAsWorker(configOptions);
         }
 
 
-
     }
 
-    public static void  runAsWorker(ConfigOptions configOptions) {
+    public static void runAsWorker(ConfigOptions configOptions) {
+
+        System.out.println("Starting Redis slave on port: " + configOptions.getPort());
+
 
         try {
             Socket socket = new Socket(configOptions.getMasterHost(), configOptions.getMasterPort());
-            BufferedReader serverReader =
-                    new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            OutputStream serverWriter = socket.getOutputStream();
-            serverWriter.write("*1\r\n$4\r\nping\r\n".getBytes());
+            BufferedReader serverReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            BufferedWriter serverWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+
+            serverWriter.write(RespResponseParser.sendArrayString(new String[]{"ping"}));
             serverWriter.flush();
-            runAsMaster(configOptions.getPort());
+            Thread.sleep(500);
+            serverWriter.write(RespResponseParser.sendArrayString(new String[]{"REPLCONF", "listening-port" , Integer.toString(configOptions.getPort())}));
+            serverWriter.flush();
+            Thread.sleep(500);
+            serverWriter.write(RespResponseParser.sendArrayString(new String[]{"REPLCONF", "capa" , "psync2"}));
+            serverWriter.flush();
+            runAsMaster(configOptions.getPort(), configOptions);
+
+
         } catch (IOException e) {
             System.out.println(
                     "Exception occurred when tried to connect to the server: " +
                             e.getMessage());
             throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
 
     }
 
-    public static void  runAsMaster(int port) {
+    public static void runAsMaster(int port, ConfigOptions configOptions) {
 
-        ServerSocket serverSocket = null;
+        ServerSocket serverSocket;
         Socket clientSocket = null;
         System.out.println("Starting Redis server on port: " + port);
         try {
@@ -129,7 +134,6 @@ public class Main {
         }
 
     }
-
 
 
 }
